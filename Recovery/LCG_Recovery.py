@@ -16,7 +16,7 @@ from typing import Iterator
 
 # In two dimensions, we use modular arithmetic and the fact that we know the strict upper bound of the unknowns (2^16 in our case), to avoid bounding one of the two variables in 
 # the linear combinations and, on average, perform fewer iterations than if we had calculated these linear combinations.
-# To calculate the shortest basis roughly orthogonal in 2D, we can use Lagrange's algorithm: https://cryptohack.gitbook.io/cryptobook/lattices/lll-reduction/gaussian-reduction
+# To compute the shortest basis roughly orthogonal in 2D, we can use Lagrange's algorithm: https://cryptohack.gitbook.io/cryptobook/lattices/lll-reduction/gaussian-reduction
 # In the Sage script, a different lattice reduction algorithm is used, the BKZ algorithm, which can be applied to any dimension and will produce the same results in 2D. 
 # Lagrange's algorithm was the first to be used during the implementation of the code, and it's also the oldest lattice reduction algorithm ever documented.
 # This is why Lagrange's name has been retained in the name of certain constants, as well as to name and illustrate the reduced matrices in the comments.
