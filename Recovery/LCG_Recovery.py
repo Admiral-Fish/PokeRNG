@@ -140,7 +140,7 @@ def LCRNG_recover_ivs_seeds(hp: int, atk: int, dfs: int, spa: int, spd: int, spe
                 yield seed
                 yield seed ^ 0x80000000
 
-# Thanks to ternary assignment, it's possible to reduce the number of modulo operations, the most computationally expensive operation in the code, to a single one.
+# With ternary assignments, it's possible to reduce the number of modulo operations, the most computationally expensive operation in the code, to a single one.
 def LCRNG_recover_ivs_seeds_ternary(hp: int, atk: int, dfs: int, spa: int, spd: int, spe: int) -> Iterator[int]:
     first  = ((dfs << 10) | (atk << 5) | hp ) << 16
     second = ((spd << 10) | (spa << 5) | spe) << 16
@@ -352,7 +352,7 @@ def GCRNG_recover_ivs_seeds(hp: int, atk: int, dfs: int, spa: int, spd: int, spe
                 yield seed
                 yield seed ^ 0x80000000
 
-# Thanks to ternary assignment, it's possible to reduce the number of modulo operations, the most computationally expensive operation in the code, to a single one.
+# With ternary assignments, it's possible to reduce the number of modulo operations, the most computationally expensive operation in the code, to a single one.
 def GCRNG_recover_ivs_seeds_ternary(hp: int, atk: int, dfs: int, spa: int, spd: int, spe: int) -> Iterator[int]:
     first  = ((dfs << 10) | (atk << 5) | hp ) << 16
     second = ((spd << 10) | (spa << 5) | spe) << 16
