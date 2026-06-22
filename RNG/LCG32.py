@@ -10,7 +10,7 @@ def jump_tables_lcg32(mult: int, inc: int) -> tuple[tuple[int, ...], tuple[int, 
         inc_table.append(inc)
     return (tuple(mult_table), tuple(inc_table))
 
-def define_lcg32(mult: int, inc: int, div_rand: bool = False) -> type:
+def define_lcg32(mult: int, inc: int) -> type:
     # Hull-Dobell Theorem for maximum period (https://en.wikipedia.org/wiki/Linear_congruential_generator#m_a_power_of_2,_c_%E2%89%A0_0)
     assert (mult % 4) == 1 and (inc % 2) == 1, "The LCG doesn't have maximum period."
     
@@ -30,12 +30,11 @@ def define_lcg32(mult: int, inc: int, div_rand: bool = False) -> type:
         def next_u16(self) -> int:
             return self.next_u32() >> 16
 
-        def rand(self, maximum: int) -> int:
+        def rand_mod(self, maximum: int) -> int:
             return self.next_u16() % maximum
 
-        if div_rand:
-            def rand_div(self, maximum: int) -> int:
-                return self.next_u16() // ((0xffff // maximum) + 1)
+        def rand_div(self, maximum: int) -> int:
+            return self.next_u16() // ((0xffff // maximum) + 1)
         
         def advance(self, n: int):
             for _ in range(n):
@@ -58,8 +57,8 @@ def define_lcg32(mult: int, inc: int, div_rand: bool = False) -> type:
     
     return LCG32
 
-LCRNG = define_lcg32(0x41C64E6D, 0x6073, True)
-LCRNGR = define_lcg32(0xEEB9EB65, 0xA3561A1, True)
+LCRNG = define_lcg32(0x41C64E6D, 0x6073)
+LCRNGR = define_lcg32(0xEEB9EB65, 0xA3561A1)
 
 MRNG = define_lcg32(0x41C64E6D, 0x3039)
 MRNGR = define_lcg32(0xEEB9EB65, 0xFC77A683) 
