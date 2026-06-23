@@ -20,7 +20,7 @@ from typing import Iterator
 # In the Sage script, a different lattice reduction algorithm is used, the BKZ algorithm, which can be applied to any dimension and will produce the same results in 2D. 
 # Lagrange's algorithm was the first to be used during the implementation of the code, and it's also the oldest lattice reduction algorithm ever documented.
 # This is why Lagrange's name has been retained in the name of certain constants, as well as to name and illustrate the reduced matrices in the comments.
-# To begin calculating the constants, we build the matrix representing the lattice on which we will work, and then we apply Lagrange's algorithm to it.
+# To begin computing the constants, we build the matrix representing the lattice on which we will work, and then we apply Lagrange's algorithm to it.
 # Next, we choose the variable to bound by looking for the one that minimizes the average number of iterations based on its range (which can be determined with the Sage script)
 # and the coefficient with the highest absolute value in the adjacent column, which will serve as the modulus.
 # The average number of iterations can be estimated with the following formula: range * 2^16 / abs(modulus).
@@ -343,6 +343,43 @@ def GCRNG_recover_ivs_seeds_bis(hp: int, atk: int, dfs: int, spa: int, spd: int,
 #################################################################################################################################################################
 
 '''
+|          1     0 |   Lagrange   | -46423 -63468 |    *(-1)     | 46423   63468 |     Det  
+|                  | ===========> |               | ===========> |               | ===========> -2^32
+| 0x9638806D  2^32 |              | -46603  28804 |              | 46603  -28804 |
+'''
+
+LOTTO_R_MULT  = 0x9638806D # reverse multiplier constant
+LOTTO_R_INC   = 0xC6D9438B # reverse increment constant
+LOTTO_R_LAG0  = 0x4295     # -46423 mod 63468
+LOTTO_R_LAG1  = 0xF7EC     # 63468
+# The following two must be declared to 64 bits in order to prevent integer overflow in the operations where they are used.
+LOTTO_R_LOWER = 0xC0928805 # (0xC09188056124 + 0xffff_ffff) >> 16
+LOTTO_R_UPPER = 0xC092F075 # (0xC092F0756124 >> 16)
+
+# around 1.46 iterations in averages
+def Gen4_recover_lottery_seeds_from_2_id_numbers(n0: int, n1: int) -> Iterator[int]:    
+    tmp = ((LOTTO_R_MULT * n1 - n0) & 0xffff) * LOTTO_R_LAG1
+    lo = (tmp + LOTTO_R_LOWER) >> 16 
+    up = (tmp + LOTTO_R_UPPER) >> 16
+
+    n1 <<= 16
+
+    # each loop performs at most 2 iterations
+    for lbits in range((lo * LOTTO_R_LAG0) % LOTTO_R_LAG1, 0x10000, LOTTO_R_LAG1):
+        seed = ((n1 | lbits) * LOTTO_R_MULT + LOTTO_R_INC) & 0xffffffff
+        if (seed >> 16) == n0:
+            yield (seed * R_MULT + 0xFC77A683) & 0xffffffff
+
+    # true in around 41% of cases
+    if lo != up:
+        for lbits in range((up * LOTTO_R_LAG0) % LOTTO_R_LAG1, 0x10000, LOTTO_R_LAG1):
+            seed = ((n1 | lbits) * LOTTO_R_MULT + LOTTO_R_INC) & 0xffffffff
+            if (seed >> 16) == n0:
+                yield (seed * R_MULT + 0xFC77A683) & 0xffffffff
+
+#################################################################################################################################################################
+
+'''
 |                  1     0 |   Lagrange   | -3070150413  3572620529 |    *(-1)     | 3070150413 -3572620529 |     Det
 |                          | ===========> |                         | ===========> |                        | ===========> 2^64
 | 0xDEDCEDAE9638806D  2^64 |              | -1993949321 -3688131939 |              | 1993949321  3688131939 |
@@ -358,24 +395,23 @@ BW_R_UPPER = 0x481F4998B710B5F4 # (-0x6EDF7D7448EF4A0BCE5949A5 >> 32) + (3070150
 
 # around 1.65 iterations in average
 def BWRNG_recover_states_from_2x32_bits(out0: int, out1: int) -> Iterator[int]:
-    out0 <<= 32
-    out1 <<= 32
-    
-    tmp = (((out0 - out1 * BW_R_MULT) >> 32) & 0xffff_ffff) * BW_R_LAG0
+    tmp = ((out0 - out1 * BW_R_MULT) & 0xffff_ffff) * BW_R_LAG0
     lo = (tmp + BW_R_LOWER) >> 32
     up = (tmp + BW_R_UPPER) >> 32
+
+    out1 <<= 32
 
     # each loop performs at most 2 iterations
     for lbits in range((lo * BW_R_LAG1) % BW_R_LAG0, 0x1_0000_0000, BW_R_LAG0):
         state = ((out1 | lbits) * BW_R_MULT + BW_R_INC) & 0xffff_ffff_ffff_ffff
-        if (state & 0xffff_ffff_0000_0000) == out0:
+        if (state >> 32) == out0:
             yield state
     
     # true in around 18% of cases
     if lo != up:
         for lbits in range((up * BW_R_LAG1) % BW_R_LAG0, 0x1_0000_0000, BW_R_LAG0):
             state = ((out1 | lbits) * BW_R_MULT + BW_R_INC) & 0xffff_ffff_ffff_ffff
-            if (state & 0xffff_ffff_0000_0000) == out0:
+            if (state >> 32) == out0:
                 yield state
 
 #################################################################################################################################################################
