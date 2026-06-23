@@ -357,7 +357,7 @@ BW_R_LOWER = 0x481F49988938ADF4 # ((-0x6EDF7D7576C7520BCE5949A5 + 0xffff_ffff_ff
 BW_R_UPPER = 0x481F4998B710B5F4 # (-0x6EDF7D7448EF4A0BCE5949A5 >> 32) + (3070150413 << 32)
 
 # around 1.65 iterations in average
-def BWRNG_recover_state_from_2x32_bits(out0: int, out1: int) -> Iterator[int]:
+def BWRNG_recover_states_from_2x32_bits(out0: int, out1: int) -> Iterator[int]:
     out0 <<= 32
     out1 <<= 32
     
