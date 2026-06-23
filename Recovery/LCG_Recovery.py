@@ -357,7 +357,7 @@ LOTTO_R_LOWER = 0xC0928805 # (0xC09188056124 + 0xffff_ffff) >> 16
 LOTTO_R_UPPER = 0xC092F075 # (0xC092F0756124 >> 16)
 
 # around 1.46 iterations in averages
-def Gen4_recover_lottery_seeds_from_2_id_numbers(n0: int, n1: int) -> Iterator[int]:    
+def recover_group_seeds_from_2_lotto_numbers(n0: int, n1: int) -> Iterator[int]:    
     tmp = ((LOTTO_R_MULT * n1 - n0) & 0xffff) * LOTTO_R_LAG1
     lo = (tmp + LOTTO_R_LOWER) >> 16 
     up = (tmp + LOTTO_R_UPPER) >> 16
