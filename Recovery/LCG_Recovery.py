@@ -39,7 +39,7 @@ from typing import Iterator
 # In the 2-dimension case, the constants returned by the Sage script have been divided by 2^16, and extra values were added to most of them.
 # The division by 2^16 is due to the fact that the divisions by the determinant of the Lagrange-reduced matrices have been split into 2 subdivisions, and we assume that the 
 # constants have already been divided during the first subdivision. 
-# The extra values were added to prevent unsigned integer overflow (for programming languages such as C++, Rust, C#, etc.) while maintaining consistency with the modulus, or to 
+# The extra values were added to prevent unsigned integer overflow (for programming languages such as C++, Rust, C#, etc.) while maintaining consistency with the moduli, or to 
 # allow division rounded up to the nearest integer.
 # If the determinant of the Lagrange-reduced matrix is negative, the constants displayed by the script must be swaped and multiplied by -1.
 
