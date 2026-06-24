@@ -345,7 +345,7 @@ def GCRNG_recover_ivs_seeds_bis(hp: int, atk: int, dfs: int, spa: int, spd: int,
 '''
 In DPPt and HGSS, lottery numbers are generated using 2 different LCGs, as following:
 
-Let n0, n1 be two consecutive lottery numbers, and x the group seed we are searching for.
+Let n0 and n1 be two consecutive lottery numbers, and x the group seed we are searching for.
 
 n0 = MRNG(x) >> 16
 
