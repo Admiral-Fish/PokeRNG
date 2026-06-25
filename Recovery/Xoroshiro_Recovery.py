@@ -8,7 +8,6 @@ def xoroshiro_recover_seeds(first: int, second: int) -> Iterator[int]:
 
     The algorithm solves equations by brute-forcing 6 bits of the seeds and 1 carry bit. 
     """
-    
     # 0-31
     base_seed = (first - XOROSHIRO_CONST) & 0xffff_ffff
 
@@ -56,7 +55,6 @@ def xoroshiro_recover_seeds_with_skip(first: int, third: int) -> Iterator[int]:
 
     The algorithm solves equations by brute-forcing 8 bits of the seeds and 2 carry bits.   
     """
-    
     # 0-31
     base_seed = (first - XOROSHIRO_CONST) & 0xffff_ffff
 

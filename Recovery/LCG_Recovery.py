@@ -10,10 +10,8 @@ from typing import Iterator
 # Moreover, the desired outputs provided by the user can be interpreted as a vertex of the hypercube, and we calculate the differences between the vector coordinates of the
 # endpoints of the parallelepiped and those of the user's vertex that was sent into the reduced space.
 # The differences will always be the same, regardless of the user's desired outputs, and can be derivate into integer constants.
-# These integer constants can be added during the calculation of the coordinates of the user's vertex in the reduced space, in order to find the extreme coordinates of the 
-# parallelepiped in each dimension. 
-# In other words, we can bound the variables in the integer linear combinations of the candidate solutions, without having to deal with matrix calculations and floating numbers
-# at the runtime.
+# These integer constants can be added when calculating the coordinates of the user's vertex in the reduced space to obtain the extreme coordinates in each dimension.
+# In other words, we can bound the variables in the linear combinations of candidate solutions without resorting to matrix calculations or floating-point numbers at the runtime.
 
 # In two dimensions, we use modular arithmetic and the fact that we know the strict upper bound of the unknowns (2^16 in our case), to avoid bounding one of the two variables in 
 # the linear combinations and, on average, perform fewer iterations than if we had calculated these linear combinations.
@@ -21,12 +19,12 @@ from typing import Iterator
 # In the Sage script, a different lattice reduction algorithm is used, the BKZ algorithm, which can be applied to any dimension and will produce the same results in 2D. 
 # Lagrange's algorithm was the first to be used during the implementation of the code, and it's also the oldest lattice reduction algorithm ever documented.
 # This is why Lagrange's name has been retained in the name of certain constants, as well as to name and illustrate the reduced matrices in the comments.
-# To begin computing the constants, we build the matrix representing the lattice on which we will work, and we apply Lagrange's algorithm to it.
+# To begin computing the constants, we build the matrix representing the lattice on which we will work, and then we apply Lagrange's algorithm to it.
 # Next, we choose the variable to bound by looking for the one that minimizes the average number of iterations based on its range (which can be determined with the Sage script)
 # and the coefficient with the highest absolute value in the adjacent column, which will serve as the modulus.
 # The average number of iterations can be estimated with the following formula: range * 2^16 / abs(modulus).
 # To ensure that the calculations in the code are performed correctly, the modulus must be positive and located on the first row of the Lagrange-reduced matrix.
-# If the modulus is located on the second row, we can swap the rows by building the lattice matrix from the reversed version of the LCG and then apply Lagrange's algorithm to it.
+# If the modulus is on the second row, we can swap the rows by building the lattice matrix from the reversed version of the LCG, while applying Lagrange's algorithm to it.
 # In the case where the modulus is negative, we multiply the Lagrange-reduced matrix by -1 to obtain a positive modulus.
 # At the end, LAG0 and LAG1 are respectively the top left and top right coefficients of the resulting matrix.
 # If we bound the first variable, LAG1 is the modulus and LAG0 is reduced modulo LAG1, and vice-versa for the second variable.
@@ -36,7 +34,7 @@ from typing import Iterator
 # To take advantage of this even when the determinant is negative, we transfer the sign of the determinant to the constant involved in the multiplication just before the modulo.
 # Thus, if the determinant of a Lagrange-reduced matrix is negative, the opposite of LAG0 or LAG1 (not the modulus) is used to compensate.
 
-# LOWER and UPPER constants are the ones used to bound the variables in the integer linear combinations.
+# LOWER and UPPER constants are the ones used to bound the variables in the linear combinations.
 # In the 2-dimension case, the constants returned by the Sage script have been divided by 2^16, and extra values were added to most of them.
 # The division by 2^16 is due to the fact that the divisions by the determinant of the Lagrange-reduced matrices have been split into 2 subdivisions, and we assume that the 
 # constants have already been divided during the first subdivision. 

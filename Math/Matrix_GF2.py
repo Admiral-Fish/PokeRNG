@@ -140,7 +140,6 @@ def matrix_charpoly_gf2(mat: Matrix) -> int:
     
     At the end, the matrix is triangular and its determinant can be calculated by multiplying the coefficients on the main diagonal.
     """
-    
     n = mat.shape[0]    
     assert n == mat.shape[1], "The matrix must be square."
 
