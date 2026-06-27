@@ -9,9 +9,9 @@ from typing import Iterator
 # Next, we look at the minimum and maximum coordinates in all dimensions to find the endpoints of the resulting parallelepiped.
 # Moreover, the desired outputs provided by the user can be interpreted as a vertex of the hypercube, and we calculate the differences between the vector coordinates of the
 # endpoints of the parallelepiped and those of the user's vertex that was sent into the reduced lattice.
-# The differences will always be the same, regardless of the user's desired outputs, and can be derivate into integer constants.
+# Once the outputs range sizes are set, the differences will always remain the same regardless of the user's desired outputs, and can be expressed as integer constants.
 # These integer constants can be added when calculating the coordinates of the user's vertex in the reduced lattice to obtain the extreme coordinates in each dimension.
-# In other words, we can bound the variables in the linear combinations of candidate solutions without resorting to matrix calculations or floating-point numbers at the runtime.
+# In other words, we can bound the variables in the linear combinations to find all the solutions without resorting to matrix calculations or floating-point numbers at runtime.
 
 # In two dimensions, we use modular arithmetic and the fact that we know the strict upper bound of the unknowns (2^16 in our case), to avoid bounding one of the two variables in 
 # the linear combinations and, on average, perform fewer iterations than if we had calculated these linear combinations.
