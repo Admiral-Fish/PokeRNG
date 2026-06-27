@@ -5,12 +5,12 @@ from typing import Iterator
 # And a video if you'd like to learn more: https://www.youtube.com/watch?v=gsaV9gcLntM
 
 # The constants in the code were computed using this Sage script: https://gist.github.com/StarfBerry/6473c4e33ae73fc5b370530f694d47ab
-# Basically, the idea behind the script is to track where the vertices of a hypercube (representing the ranges of desired outputs) are sent into a reduced space.
+# Basically, the idea behind the script is to track where the vertices of a hypercube (representing the ranges of desired outputs) are sent into a reduced lattice.
 # Next, we look at the minimum and maximum coordinates in all dimensions to find the endpoints of the resulting parallelepiped.
 # Moreover, the desired outputs provided by the user can be interpreted as a vertex of the hypercube, and we calculate the differences between the vector coordinates of the
-# endpoints of the parallelepiped and those of the user's vertex that was sent into the reduced space.
+# endpoints of the parallelepiped and those of the user's vertex that was sent into the reduced lattice.
 # The differences will always be the same, regardless of the user's desired outputs, and can be derivate into integer constants.
-# These integer constants can be added when calculating the coordinates of the user's vertex in the reduced space to obtain the extreme coordinates in each dimension.
+# These integer constants can be added when calculating the coordinates of the user's vertex in the reduced lattice to obtain the extreme coordinates in each dimension.
 # In other words, we can bound the variables in the linear combinations of candidate solutions without resorting to matrix calculations or floating-point numbers at the runtime.
 
 # In two dimensions, we use modular arithmetic and the fact that we know the strict upper bound of the unknowns (2^16 in our case), to avoid bounding one of the two variables in 

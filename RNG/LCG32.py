@@ -47,12 +47,12 @@ def define_lcg32(mult: int, inc: int) -> type:
                 n ^= 1 << i # skip zeros (at the cost of calling the bit_length method on n)
 
         @staticmethod
-        def distance(s0: int, s1: int) -> int:                    
+        def distance(start: int, end: int) -> int:                    
             dist = 0
-            while diff := s0 ^ s1:
+            while diff := start ^ end:
                 dist |= diff & -diff # <==> diff & (~diff + 1) to isolate the lowest power of 2
                 i = dist.bit_length() - 1 # <==> 31 - std::countl_zero(dist)
-                s0 = (s0 * LCG32.MULT_TABLE[i] + LCG32.INC_TABLE[i]) & 0xffffffff
+                start = (start * LCG32.MULT_TABLE[i] + LCG32.INC_TABLE[i]) & 0xffffffff
             return dist
     
     return LCG32
