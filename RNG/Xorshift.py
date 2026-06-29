@@ -100,12 +100,10 @@ class Xorshift128:
         self.advance(n & 0x7f)
         n >>= 7
         
-        i = 7
         while n:
-            if n & 1:
-                self.jump_2_pow(i)
-            n >>= 1
-            i += 1
+            i = n.bit_length() - 1
+            self.jump_2_pow(i + 7)
+            n ^= 1 << i # skip zeros (at the cost of calling the bit_length method on n)
 
 XORSHIFT_JUMP_TABLE = (
     0x00000000000000000000000000000002, 0x00000000000000000000000000000004, 0x00000000000000000000000000000010, 0x00000000000000000000000000000100,

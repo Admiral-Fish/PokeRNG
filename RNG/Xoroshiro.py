@@ -85,12 +85,10 @@ class Xoroshiro128Plus:
         self.advance(n & 0x7f)
         n >>= 7
         
-        i = 7
         while n:
-            if n & 1:
-                self.jump_2_pow(i)
-            n >>= 1
-            i += 1
+            i = n.bit_length() - 1
+            self.jump_2_pow(i + 7)
+            n ^= 1 << i # skip zeros (at the cost of calling the bit_length method on n)
 
 class XoroshiroBDSP(Xoroshiro128Plus):
     def __init__(self, s0: int, s1: int | None = None):

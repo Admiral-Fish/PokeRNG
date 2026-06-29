@@ -40,9 +40,6 @@ class TinyMT:
         self.s2 = s2
         self.s3 = s3
 
-        # Period certification is not necessary when seeded with a 32-bit integer.
-        #self.period_certification()
-
         self.advance(8)
 
     def restate(self, s0: int, s1: int, s2: int, s3: int):        
@@ -153,12 +150,10 @@ class TinyMT:
         self.advance(n & 0x7f)
         n >>= 7
         
-        i = 7
         while n:
-            if n & 1:
-                self.jump_2_pow(i)
-            n >>= 1
-            i += 1         
+            i = n.bit_length() - 1
+            self.jump_2_pow(i + 7)
+            n ^= 1 << i # skip zeros (at the cost of calling the bit_length method on n)     
 
 TINYMT_JUMP_TABLE = (
     0x00000000000000000000000000000002, 0x00000000000000000000000000000004, 0x00000000000000000000000000000010, 0x00000000000000000000000000000100,

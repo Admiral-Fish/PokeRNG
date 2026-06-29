@@ -9,7 +9,7 @@ from typing import Iterator
 # Next, we look at the minimum and maximum coordinates in all dimensions to find the endpoints of the resulting parallelepiped.
 # Moreover, the user's desired outputs can be interpreted as a vertex of the hypercube, and we calculate the differences between the vector coordinates of the endpoints of the
 # parallelepiped and those of the user's vertex that was sent into the reduced lattice.
-# As long as the user provides output ranges of the same length, the differences will always remain the same and can be expressed as integer constants.
+# As long as the lengths of the output ranges provided by the user remain the same, the differences will also remain the same and can be expressed as integer constants.
 # These integer constants can be added when calculating the coordinates of the user's vertex in the reduced lattice to obtain the extreme coordinates in each dimension.
 # In other words, we can bound the variables in the linear combinations to find all the solutions without resorting to matrix calculations or floating-point numbers at runtime.
 
@@ -17,7 +17,7 @@ from typing import Iterator
 # the linear combinations and, on average, perform fewer iterations than if we had calculated these linear combinations.
 # To compute the shortest basis roughly orthogonal in 2D, we can use Lagrange's algorithm: https://cryptohack.gitbook.io/cryptobook/lattices/lll-reduction/gaussian-reduction
 # In the Sage script, a different lattice reduction algorithm is used, the BKZ algorithm, which can be applied to any dimension and will produce the same results in 2D. 
-# Lagrange's algorithm was the first to be used during the implementation of the code, and it's also the oldest lattice reduction algorithm ever documented.
+# However, Lagrange's algorithm was the first to be used during the implementation of the code, and it's also the oldest lattice reduction algorithm ever documented.
 # This is why Lagrange's name has been retained in the name of certain constants, as well as to name and illustrate the reduced matrices in the comments.
 # To begin computing the constants, we build the matrix representing the lattice on which we will work, and then we apply Lagrange's algorithm to it.
 # Next, we choose the variable to bound by looking for the one that minimizes the average number of iterations based on its range (which can be determined with the Sage script)
@@ -34,7 +34,7 @@ from typing import Iterator
 # To take advantage of this even when the determinant is negative, we transfer the sign of the determinant to the constant involved in the multiplication just before the modulo.
 # Thus, if the determinant of a Lagrange-reduced matrix is negative, the opposite of LAG0 or LAG1 (not the modulus) is used to compensate.
 
-# LOWER and UPPER constants are the ones used to bound the variables in the linear combinations.
+# LOWER and UPPER constants are used to bound the variables in the linear combinations of the potential solutions.
 # In the 2-dimension case, the constants returned by the Sage script have been divided by 2^16, and extra values were added to most of them.
 # The division by 2^16 is due to the fact that the divisions by the determinant of the Lagrange-reduced matrices have been split into 2 subdivisions, and we assume that the 
 # constants have already been divided during the first subdivision. 
@@ -73,24 +73,9 @@ LAG1  = 0xC907     # 51463
 LOWER = 0x64833CB0 # ((-0xC34F11DB + 0x7fff_ffff) >> 16) + (51463 << 15)
 UPPER = 0x6483CBBC # (0x4BBCEE25 >> 16) + (51463 << 15)
 
-# around 2.02 iterations in average
-def LCRNG_recover_pid_seeds(pid: int) -> Iterator[int]:
-    first = (pid & 0xffff) << 16
-    second = pid & 0xffff0000
-    
-    tmp = ((first - second * R_MULT) >> 16) & 0xffff
-    lbits = (((tmp * R_LAG0 + R_UPPER) >> 16) * R_LAG1) % R_LAG0
-
-    # at most 3 iterations
-    while lbits < 0x10000:
-        seed = ((second | lbits) * R_MULT + R_INC) & 0xffffffff
-        if (seed & 0xffff0000) == first:
-            yield seed
-        lbits += R_LAG0
-
 # The range of the second variable is smaller than one.
 # So, in some cases, we can predict that there will be no solutions without having to enter the loop.
-def LCRNG_recover_pid_seeds_bis(pid: int) -> Iterator[int]:
+def LCRNG_recover_pid_seeds(pid: int) -> Iterator[int]:
     first = (pid & 0xffff) << 16
     second = pid & 0xffff0000
     
@@ -102,7 +87,7 @@ def LCRNG_recover_pid_seeds_bis(pid: int) -> Iterator[int]:
     if lo != up: 
         return
     
-    # at most 3 iterations
+    # at most 3 iterations (around 2.02 in average)
     for lbits in range((lo * R_LAG1) % R_LAG0, 0x10000, R_LAG0):
         seed = ((second | lbits) * R_MULT + R_INC) & 0xffffffff
         if (seed & 0xffff0000) == first:
@@ -354,9 +339,9 @@ n1 = MRNG(ARNG(x)) >> 16
    = MRNG(ARNG(MRNGR(X))) >> 16
    = (0x41C64E6D * (0x6C078965 * (0xEEB9EB65 * X + 0xFC77A683) + 0x1) + 0x3039) >> 16
    = (0x6C078965 * X + 0xCA55F729) >> 16
-   
+
 In this way, the LCGs were combined into a single one, which can be used to build the lattice matrix.
-However, it's a little more advantageous to work with the reversed version of this new LCG, since it yields the smallest average number of iterations.
+However, it's more advantageous to work with the reversed version of this new LCG, since it yields the smallest average number of iterations.
 
 
 |          1     0 |   Lagrange   | -46423 -63468 |    *(-1)     | 46423   63468 |     Det
@@ -442,86 +427,61 @@ def BWRNG_recover_states_from_2x32_bits(out0: int, out1: int) -> Iterator[int]:
 '''
 
 # First row of the BKZ-reduced matrix
-R0 = -2528644
-R1 = -24142902
-R2 = 52961366
-R3 = 7565619
-R4 = 24945956
-R5 = -99942057
+R = (-2528644, -24142902, 52961366, 7565619, 24945956, -99942057)
 
-M0 = 0x343FD    # multiplier constant
-M1 = 0xA9FC6809 # M0^2 mod 2^32
-M2 = 0x45C82BE5 # M0^3 mod 2^32
-M3 = 0xDDFF5051 # M0^4 mod 2^32
-M4 = 0x284A930D # M0^5 mod 2^32
+# Multiplier constants
+M = (0x343FD, 0xA9FC6809, 0x45C82BE5, 0xDDFF5051, 0x284A930D)
 
-I0 = 0x269EC3   # increment constant
-I1 = 0x1E278E7A # I0 * (1 + M0) mod 2^32
-I2 = 0xD2F65B55 # I0 * (1 + M0 + M1) mod 2^32
-I3 = 0x98520C4  # I0 * (1 + M0 + M1 + M2) mod 2^32
-I4 = 0xA2974C77 # I0 * (1 + M0 + M1 + M2 + M3) mod 2^32
+# Increment constants
+I = (0x269EC3, 0x1E278E7A, 0xD2F65B55, 0x98520C4, 0xA2974C77)
 
-CHANNEL_LOWER0 = 0x2AB966D1C2 # ((-10 - 1 - 15 - 53) << 27) - 23 * I0 + I1 + 15 * I2 - 52 * I3 + 53 * I4 + 0xffffffff
-CHANNEL_UPPER0 = 0x2E8966D1C3 # ((23 + 52) << 27) - 23 * I0 + I1 + 15 * I2 - 52 * I3 + 53 * I4
-
-CHANNEL_LOWER1 = 0x2169A3AA47 # ((-14 - 18 - 21 - 26 - 24) << 27) - 7 * I0 + 18 * I1 + 21 * I2 + 26 * I3 + 24 * I4 + 0xffffffff
-CHANNEL_UPPER1 = 0x23D9A3AA48 # (7 << 27) - 7 * I0 + 18 * I1 + 21 * I2 + 26 * I3 + 24 * I4
-
-CHANNEL_LOWER2 = -0x5049D5FDC # ((-5 - 5 - 15) << 27) + 5 * I0 - 22 * I1 - 15 * I2 + 5 * I3 + 15 * I4 + 0xffffffff
-CHANNEL_UPPER2 = -0x3549D5FDB # ((24 + 22 + 15) << 27) + 5 * I0 - 22 * I1 - 15 * I2 + 5 * I3 + 15 * I4
-
-CHANNEL_LOWER3 = -0x2AACDA387 # ((-5 - 24 - 12) << 27) + 24 * I0 - 26 * I1 + 12 * I2 - 9 * I3 - 14 * I4 + 0xffffffff
-CHANNEL_UPPER3 = -0xDACDA386  # ((26 + 9 + 14) << 27) + 24 * I0 - 26 * I1 + 12 * I2 - 9 * I3 - 14 * I4
-
-CHANNEL_LOWER4 = 0xFE7FFFFFF  # ((-18 - 8 - 1) << 27) - 27 * I0 + 18 * I2 + 8 * I3 + I4 + 0xffffffff
-CHANNEL_UPPER4 = 0x1098000000 # (27 << 27) - 27 * I0 + 18 * I2 + 8 * I3 + I4
-
-CHANNEL_LOWER5 = -0x898000001 # (-27 << 27) - 18 * I1 - 8 * I2 - I3 + 0xffffffff
-CHANNEL_UPPER5 = -0x7E8000000 # ((18 + 8 + 1) << 27) - 18 * I1 - 8 * I2 - I3
+# Constants to bound the variables in the linear combinations of the potential solutions
+CHANNEL_LOWER = (0x2AB966D1C2, 0x2169A3AA47, -0x5049D5FDC, -0x2AACDA387, 0xFE7FFFFFF, -0x898000001)
+CHANNEL_UPPER = (0x2E8966D1C3, 0x23D9A3AA48, -0x3549D5FDB, -0xDACDA386, 0x1098000000, -0x7E8000000)
 
 def channel_recover_ivs_seeds(hp: int, atk: int, dfs: int, spa: int, spd: int, spe: int) -> Iterator[int]:
     f0 = (-10 * hp + 23 * atk - dfs - 15 * spe + 52 * spa - 53 * spd) << 27
-    x0_min = ((f0 + CHANNEL_UPPER0) >> 32) * R0 # LOWER and UPPER are inverted relative to xmin and xmax because R0 is negative (same with R1 and R5)
-    x0_max = ((f0 + CHANNEL_LOWER0) >> 32) * R0
+    x0_min = ((f0 + CHANNEL_UPPER[0]) >> 32) * R[0] # LOWER and UPPER are inverted relative to xmin and xmax because R0 is negative (same with R1 and R5)
+    x0_max = ((f0 + CHANNEL_LOWER[0]) >> 32) * R[0]
 
     f1 = (-14 * hp + 7 * atk - 18 * dfs - 21 * spe - 26 * spa - 24 * spd) << 27
-    x1_min = ((f1 + CHANNEL_UPPER1) >> 32) * R1
-    x1_max = ((f1 + CHANNEL_LOWER1) >> 32) * R1
+    x1_min = ((f1 + CHANNEL_UPPER[1]) >> 32) * R[1]
+    x1_max = ((f1 + CHANNEL_LOWER[1]) >> 32) * R[1]
 
     f2 = (24 * hp - 5 * atk + 22 * dfs + 15 * spe - 5 * spa - 15 * spd) << 27
-    x2_min = ((f2 + CHANNEL_LOWER2) >> 32) * R2
-    x2_max = ((f2 + CHANNEL_UPPER2) >> 32) * R2
+    x2_min = ((f2 + CHANNEL_LOWER[2]) >> 32) * R[2]
+    x2_max = ((f2 + CHANNEL_UPPER[2]) >> 32) * R[2]
 
     f3 = (-5 * hp - 24 * atk + 26 * dfs - 12 * spe + 9 * spa + 14 * spd) << 27
-    x3_min = ((f3 + CHANNEL_LOWER3) >> 32) * R3
-    x3_max = ((f3 + CHANNEL_UPPER3) >> 32) * R3
+    x3_min = ((f3 + CHANNEL_LOWER[3]) >> 32) * R[3]
+    x3_max = ((f3 + CHANNEL_UPPER[3]) >> 32) * R[3]
 
     f4 = (27 * atk - 18 * spe - 8 * spa - spd) << 27
-    x4_min = ((f4 + CHANNEL_LOWER4) >> 32) * R4
-    x4_max = ((f4 + CHANNEL_UPPER4) >> 32) * R4
+    x4_min = ((f4 + CHANNEL_LOWER[4]) >> 32) * R[4]
+    x4_max = ((f4 + CHANNEL_UPPER[4]) >> 32) * R[4]
 
     f5 = (-27 * hp + 18 * dfs + 8 * spe + spa) << 27
-    x5_min = ((f5 + CHANNEL_UPPER5) >> 32) * R5
-    x5_max = ((f5 + CHANNEL_LOWER5) >> 32) * R5
+    x5_min = ((f5 + CHANNEL_UPPER[5]) >> 32) * R[5]
+    x5_max = ((f5 + CHANNEL_LOWER[5]) >> 32) * R[5]
 
     # at most 720 iterations in total (around 369 in average, 48 in the best case)
-    for x5 in range(x5_min, x5_max + 1, -R5):
-        for x4 in range(x4_min, x4_max + 1, R4):
+    for x5 in range(x5_min, x5_max + 1, -R[5]):
+        for x4 in range(x4_min, x4_max + 1, R[4]):
             l4 = x5 + x4
-            for x2 in range(x2_min, x2_max + 1, R2):
+            for x2 in range(x2_min, x2_max + 1, R[2]):
                 l2 = l4 + x2
-                for x3 in range(x3_min, x3_max + 1, R3):
+                for x3 in range(x3_min, x3_max + 1, R[3]):
                     l3 = l2 + x3
-                    for x1 in range(x1_min, x1_max + 1, -R1):
+                    for x1 in range(x1_min, x1_max + 1, -R[1]):
                         l1 = l3 + x1
-                        for x0 in range(x0_min, x0_max + 1, -R0):
+                        for x0 in range(x0_min, x0_max + 1, -R[0]):
                             seed = l1 + x0
                             if (
                                 ((seed >> 27) & 31) == hp and 
-                                (((seed * M0 + I0) >> 27) & 31) == atk and 
-                                (((seed * M1 + I1) >> 27) & 31) == dfs and
-                                (((seed * M2 + I2) >> 27) & 31) == spe and 
-                                (((seed * M3 + I3) >> 27) & 31) == spa and
-                                (((seed * M4 + I4) >> 27) & 31) == spd
+                                (((seed * M[0] + I[0]) >> 27) & 31) == atk and 
+                                (((seed * M[1] + I[1]) >> 27) & 31) == dfs and
+                                (((seed * M[2] + I[2]) >> 27) & 31) == spe and 
+                                (((seed * M[3] + I[3]) >> 27) & 31) == spa and
+                                (((seed * M[4] + I[4]) >> 27) & 31) == spd
                             ):
                                 yield seed
