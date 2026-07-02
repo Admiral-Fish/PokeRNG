@@ -52,7 +52,7 @@ def matrix_reduced_row_echelon_form_gf2(mat: Matrix) -> tuple[Matrix, list[int],
     return (reduced, operations, pr)
 
 def matrix_inverse_gf2(mat: Matrix) -> Matrix:
-    """Computes the inverse of the given matrix, assuming the matrix is invertible over GF(2)."""
+    """Computes the inverse of the given matrix."""
     n = mat.shape[0]
     assert n == mat.shape[1], "The matrix must be square."
 
@@ -131,7 +131,7 @@ def matrix_equation_gf2(mat: Matrix) -> tuple[int, int]:
     return (zeros, equation)
 
 # This algorithm is not suitable for large matrices, such as the Mersenne Twister matrix.
-# However, for 128-bit (or even 256-bit) PRNGs matrices, which are relatively small and empty, the algo is quite fast.
+# However, for 128-bit (or even 256-bit) PRNG matrices, which are relatively small and empty, this algo is quite fast.
 def matrix_charpoly_gf2(mat: Matrix) -> int:
     """
     Computes the characteristic polynomial of the given matrix over GF(2).

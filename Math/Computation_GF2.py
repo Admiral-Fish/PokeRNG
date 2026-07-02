@@ -2,6 +2,9 @@ from typing import Sequence
 from Matrix_GF2 import *
 from Polynomial_GF2 import *
 
+def rotl(n: int, k: int) -> int:
+    return ((n << k) | (n >> (64 - k))) & 0xffffffffffffffff
+
 def tinymt_next(state128: int) -> int:
     s0 = state128 & 0xffffffff
     s1 = (state128 >> 32) & 0xffffffff
@@ -20,15 +23,12 @@ def tinymt_next(state128: int) -> int:
     s3 = y
 
     if y & 1:
-        s1 ^= 0x8f7011ee
-        s2 ^= 0xfc78ff1f
+        s1 ^= 0x8F7011EE
+        s2 ^= 0xFC78FF1F
 
     return (s3 << 96) | (s2 << 64) | (s1 << 32) | s0
 
 def xoroshiro128plus_next(state128: int) -> int:
-    def rotl(n: int, k: int) -> int:
-        return ((n << k) | (n >> (64 - k))) & 0xffffffffffffffff
-    
     s0 = state128 & 0xffffffffffffffff
     s1 = (state128 >> 64) ^ s0
 
@@ -79,10 +79,7 @@ def xorshift128_bdsp_blinks(state128: int, intervals: Sequence[int]) -> int:
         bits |= ((state128 >> 96) & 0xf) << (4 * i) # blink = rand(16) <= 1 <==> state[3] & 0xf <= 1 (0 for double, 1 for single)
     return bits
 
-def prng_jump_table_gf2(charpoly: int, size: int) -> list[int]:
-    return [poly_pow_mod_gf2(2, 1 << i, charpoly) for i in range(size)]
-
-def print_bit_matrix_in_hex(mat: Matrix, axis: int = 0, per_line: int = 1):
+def print_bit_matrix_in_hex(mat: Matrix, axis: int, per_line: int):
     if axis == 0:
         # rows
         get_axis = lambda i: mat[i]
@@ -94,17 +91,22 @@ def print_bit_matrix_in_hex(mat: Matrix, axis: int = 0, per_line: int = 1):
 
     hex_size = (axis_length + 3) // 4
 
-    for i in range(0, axis_length, per_line):
-        line = (f"0x{bit_vector_to_int(get_axis(j)):0{hex_size}x}" for j in range(i, min(i + per_line, axis_length)))
-        print(", ".join(line), end=",\n")
-
-def print_jump_table_in_hex(charpoly: int, size: int, per_line: int = 1):
-    jump_table = prng_jump_table_gf2(charpoly, size)
-    hex_size = (poly_deg_gf2(charpoly) + 3) // 4
+    for i in range(axis_length):
+        a = bit_vector_to_int(get_axis(i))
+        print(f"0x{a:0{hex_size}x},", end = "\n" if (i + 1) % per_line == 0 else " ")
     
-    for i in range(0, size, per_line):
-        line = (f"0x{jump_table[j]:0{hex_size}x}" for j in range(i, min(i + per_line, size)))
-        print(", ".join(line), end=",\n")
+    if axis_length % per_line:
+        print()
+
+def print_jump_table_in_hex(charpoly: int, size: int, per_line: int):
+    hex_size = (charpoly.bit_length() - 1 + 3) // 4
+
+    for i in range(size):
+        poly = poly_pow_mod_gf2(2, 1 << i, charpoly)
+        print(f"0x{poly:0{hex_size}x},", end = "\n" if (i + 1) % per_line == 0 else " ")
+    
+    if size % per_line:
+        print()
 
 if __name__ == "__main__":
     
@@ -128,22 +130,18 @@ if __name__ == "__main__":
     print(hex(charpoly)) # 0x1000000010046d8b3f985d65ffd3c8001
     '''
     
-    # The characteristic polynomial of TinyMT can be factored by the monomial x.
-    #print_jump_table_in_hex(0x1b0a48045db1bfe951b98a18f31f57486 >> 1, 127, 4)
+    # The characteristic polynomial of the TinyMT can be factored by the monomial x to obtain an annihilating polynomial of lower degree.
+    print_jump_table_in_hex(0x1b0a48045db1bfe951b98a18f31f57486 >> 1, 127, 4)
 
     #print_jump_table_in_hex(0x10008828e513b43d5095b8f76579aa001, 128, 4)
 
     #print_jump_table_in_hex(0x1000000010046d8b3f985d65ffd3c8001, 128, 4)
 
-    '''
-    mat = function_to_matrix_gf2(tinymt_127bits_sequence, 127, 128)
+    '''mat = function_to_matrix_gf2(tinymt_127bits_sequence, 127, 128)
     mat = np.delete(mat, 31, 1) # delete the 31st column to make the matrix invertible
     inv = matrix_inverse_gf2(mat)
-    print_bit_matrix_in_hex(inv, 1, 4)
-    '''
+    print_bit_matrix_in_hex(inv, 1, 4)'''
 
-    '''
-    mat = function_to_matrix_gf2(xoroshiro128plus_128bits_sequence, 128, 128)
+    '''mat = function_to_matrix_gf2(xoroshiro128plus_128bits_sequence, 128, 128)
     inv = matrix_inverse_gf2(mat)
-    print_bit_matrix_in_hex(inv, 1, 4)
-    '''
+    print_bit_matrix_in_hex(inv, 1, 4)'''

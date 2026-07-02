@@ -2,7 +2,7 @@ import numpy as np
 from typing import Sequence
 
 def inv_mod_pow_2(n: int, p: int) -> int:
-    """Returns the multiplicative inverse of n modulo 2^p, using the Extended Euclidean algorithm."""  
+    """Calculates the multiplicative inverse of n modulo 2^p, using the Extended Euclidean algorithm."""  
     assert (n & 1) == 1, "n must be odd to be relatively prime with a power of 2."
     
     p2 = 1 << p
@@ -17,19 +17,19 @@ def inv_mod_pow_2(n: int, p: int) -> int:
     return x % p2
 
 def reverse_lcg_32(mult: int, inc: int) -> tuple[int, int]:
-    """Returns the multiplier and increment for a 32-bit LCG to move backward in the state sequence."""
+    """Calculates the multiplier and increment for a 32-bit LCG to move backward in the state sequence."""
     rmult = inv_mod_pow_2(mult, 32)
     rinc = (-inc * rmult) & 0xffffffff
     return (rmult, rinc)
 
 def reverse_lcg_64(mult: int, inc: int) -> tuple[int, int]:
-    """Returns the multiplier and increment for a 64-bit LCG to move backward in the state sequence."""
+    """Calculates the multiplier and increment for a 64-bit LCG to move backward in the state sequence."""
     rmult = inv_mod_pow_2(mult, 64)
     rinc = (-inc * rmult) & 0xffffffffffffffff
     return (rmult, rinc)
 
 def lagrange_algorithm(u: Sequence[int], v: Sequence[int]) -> tuple[tuple[int, int], tuple[int, int]]:
-    """Returns the shortest basis nearly orthogonal of a 2-dimensional integer lattice from a given basis."""
+    """Computes the shortest basis nearly orthogonal of a 2-dimensional integer lattice from a given basis."""
     assert len(u) == 2 and len(v) == 2, "Vectors are not 2-dimensional."
     assert u[0] * v[1] != u[1] * v[0], "Vectors are not linearly independent."
 

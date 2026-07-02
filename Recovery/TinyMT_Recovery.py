@@ -150,3 +150,25 @@ TINYMT_127_LSB_INV = (
     (0x7875abfc, 0xf1658c07, 0x0ee463f0, 0x5d6c07f6), (0x1cb94eab, 0x7875abfc, 0xf1658c07, 0xbd1ad7fb), 
     (0x1aa43aaa, 0x061d7401, 0x7e68dffd, 0x34d0c803),
 )
+
+if __name__ == "__main__":
+    import sys, os
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    from RNG import TinyMT
+
+    from random import getrandbits
+
+    rng = TinyMT(0)
+    n = 10_000
+
+    for _ in range(n):
+        seed = getrandbits(32)
+        advc = getrandbits(16)
+        
+        rng.reseed(seed)
+        rng.jump(advc)
+        state = rng.state
+        bits = tuple(rng.next_u32() & 1 for _ in range(127))
+
+        state_ = tinymt_recover_state_from_127_bits(bits)
+        assert state == state_, f"{state = }, {state_ = }, {seed = :08X}, {advc = }"

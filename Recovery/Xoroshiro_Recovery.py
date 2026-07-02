@@ -245,3 +245,23 @@ XOROSHIRO_128_LSB_INV = (
     (0x085bc285f98c9a72, 0x91e6750da8a02cf0), (0xaba9da6479476d4e, 0xc6ecdb03fdc85ee6), 
     (0xa80b96f6b0aea429, 0xb7e5d4018699c2f1), (0xb18a896a28d55e13, 0xbdbe477da56a70b3),
 )
+
+if __name__ == "__main__":
+    import sys, os
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    from RNG import Xoroshiro128Plus
+
+    from random import getrandbits
+
+    rng = Xoroshiro128Plus(0)
+    n = 10_000
+
+    for _ in range(n):
+        seed = getrandbits(64)
+
+        rng.reseed(seed)
+        ec = rng.next_u32()
+        rng.next_state() # fake ids
+        pid = rng.next_u32()
+
+        assert seed in xoroshiro_recover_seeds_with_skip(ec, pid), f"{seed = :016X}, {ec = :08X}, {pid = :08X}"
